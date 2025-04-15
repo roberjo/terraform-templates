@@ -1,0 +1,16 @@
+{
+  "name": "api-microservice-example",
+  "version": "1.0.0",
+  "description": "Example Lambda function for API Gateway microservices pattern",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "zip": "zip -r example-function.zip index.js package.json node_modules"
+  },
+  "author": "AWS Solutions Architect",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.1055.0"
+  },
+  "devDependencies": {}
+} 

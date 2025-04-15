@@ -1,0 +1,144 @@
+# Example terraform.tfvars file for API Gateway with Microservices and DynamoDB pattern
+
+# AWS region
+aws_region = "us-east-1"
+
+# Default tags for all resources
+default_tags = {
+  Project     = "API-Microservices"
+  Environment = "Production"
+  Terraform   = "true"
+}
+
+# Additional tags
+tags = {
+  Owner       = "Solutions-Architect-Team"
+  Department  = "Engineering"
+  Application = "Customer-API"
+}
+
+# API Gateway settings
+api_name        = "customer-api"
+api_description = "Customer API with microservices architecture"
+endpoint_types  = ["REGIONAL"]
+
+# Custom domain (uncomment and set values if needed)
+create_custom_domain = true
+domain_name          = "api.example.com"
+certificate_arn      = "arn:aws:acm:us-east-1:123456789012:certificate/abcd1234-ef56-gh78-ij90-klmnopqrstuv"
+base_path            = "v1"
+stage_name           = "prod"
+
+# DynamoDB settings
+dynamodb_table_name                  = "customer-data"
+dynamodb_billing_mode                = "PAY_PER_REQUEST"
+dynamodb_hash_key                    = "id"
+dynamodb_hash_key_type               = "S"
+dynamodb_range_key                   = "createdAt"
+dynamodb_range_key_type              = "S"
+dynamodb_enable_encryption           = true
+dynamodb_enable_point_in_time_recovery = true
+
+# DynamoDB global secondary indexes
+dynamodb_attributes = [
+  {
+    name = "userType"
+    type = "S"
+  },
+  {
+    name = "email"
+    type = "S"
+  },
+  {
+    name = "status"
+    type = "S"
+  }
+]
+
+dynamodb_global_secondary_indexes = [
+  {
+    name               = "UserTypeIndex"
+    hash_key           = "userType"
+    range_key          = "createdAt"
+    projection_type    = "INCLUDE"
+    non_key_attributes = ["id", "name", "email"]
+  },
+  {
+    name               = "EmailIndex"
+    hash_key           = "email"
+    projection_type    = "ALL"
+  },
+  {
+    name               = "StatusIndex"
+    hash_key           = "status"
+    range_key          = "createdAt"
+    projection_type    = "KEYS_ONLY"
+  }
+]
+
+# CORS settings
+enable_cors      = true
+cors_allow_origin = "*"
+
+# Lambda functions
+lambda_functions = {
+  customers = {
+    name            = "customers-service"
+    description     = "Customers microservice for managing customer data"
+    handler         = "index.handler"
+    runtime         = "nodejs18.x"
+    filename        = "./lambda/customers.zip"
+    source_code_hash = filebase64sha256("./lambda/customers.zip")
+    timeout         = 30
+    memory_size     = 256
+    environment_variables = {
+      STAGE = "production"
+      LOG_LEVEL = "info"
+    }
+  },
+  orders = {
+    name            = "orders-service"
+    description     = "Orders microservice for managing customer orders"
+    handler         = "index.handler"
+    runtime         = "nodejs18.x"
+    filename        = "./lambda/orders.zip"
+    source_code_hash = filebase64sha256("./lambda/orders.zip")
+    timeout         = 60
+    memory_size     = 512
+    environment_variables = {
+      STAGE = "production"
+      LOG_LEVEL = "info"
+      ORDER_PROCESSOR = "Standard"
+    }
+  },
+  products = {
+    name            = "products-service"
+    description     = "Products microservice for product catalog management"
+    handler         = "index.handler"
+    runtime         = "nodejs18.x"
+    filename        = "./lambda/products.zip"
+    source_code_hash = filebase64sha256("./lambda/products.zip")
+    timeout         = 30
+    memory_size     = 256
+    environment_variables = {
+      STAGE = "production"
+      LOG_LEVEL = "info"
+      CACHE_TTL = "3600"
+    }
+  },
+  inventory = {
+    name            = "inventory-service"
+    description     = "Inventory microservice for tracking product inventory"
+    handler         = "index.handler"
+    runtime         = "nodejs18.x"
+    filename        = "./lambda/inventory.zip"
+    source_code_hash = filebase64sha256("./lambda/inventory.zip")
+    timeout         = 30
+    memory_size     = 256
+    environment_variables = {
+      STAGE = "production"
+      LOG_LEVEL = "info"
+      INVENTORY_STRATEGY = "FIFO"
+    }
+  }
+} 
