@@ -1,0 +1,73 @@
+/**
+ * # API Gateway with Lambda, SNS, and SQS Pattern - Example Configuration
+ *
+ * This is an example configuration for the API Gateway with Lambda, SNS, and SQS pattern.
+ * Copy this file to terraform.tfvars and modify the values as needed.
+ */
+
+aws_region = "us-east-1"
+
+default_tags = {
+  Environment = "dev"
+  Project     = "API-Lambda-SNS-SQS"
+  Terraform   = "true"
+}
+
+# API Gateway Configuration
+api_name        = "message-processor-api"
+api_description = "API for message processing with SNS and SQS"
+endpoint_types  = ["REGIONAL"]
+stage_name      = "dev"
+
+# Custom Domain Configuration (optional)
+create_custom_domain = false
+# domain_name         = "api.example.com"
+# certificate_arn     = "arn:aws:acm:us-east-1:123456789012:certificate/abcd1234-abcd-1234-abcd-1234abcd5678"
+# base_path           = "messages"
+
+# API Configuration
+api_resource_path    = "messages"
+api_authorization_type = "NONE"
+require_api_key      = false
+
+# CORS Configuration
+enable_cors       = true
+cors_allow_origin = "*"
+cors_allow_methods = "OPTIONS,POST"
+cors_allow_headers = "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token"
+
+# SNS Topic Configuration
+sns_topic_name = "message-processor-topic"
+
+# SQS Queue Configuration
+sqs_queue_name          = "message-processor-queue"
+sqs_visibility_timeout  = 60
+sqs_message_retention   = 86400  # 1 day
+sqs_max_message_size    = 262144 # 256 KB
+sqs_use_managed_sse     = true
+create_sqs_dlq          = true
+sqs_max_receive_count   = 5
+
+# API Lambda Function Configuration
+lambda_function_name = "api-message-handler"
+lambda_description   = "Processes API requests and publishes to SNS"
+lambda_handler       = "api-handler.handler"
+lambda_runtime       = "nodejs18.x"
+lambda_timeout       = 10
+lambda_memory_size   = 128
+
+# Path to Lambda deployment package - update with your actual path
+# lambda_filename = "./src/api-handler.zip"
+
+# SQS Processor Lambda Configuration
+create_separate_sqs_processor = true
+sqs_processor_function_name   = "sqs-message-processor"
+sqs_processor_description     = "Processes messages from SQS queue"
+sqs_processor_handler         = "sqs-processor.handler"
+sqs_processor_runtime         = "nodejs18.x"
+sqs_processor_timeout         = 30
+sqs_processor_memory_size     = 256
+sqs_processor_batch_size      = 10
+
+# Path to SQS processor Lambda deployment package - update with your actual path
+# sqs_processor_filename = "./src/sqs-processor.zip" 
