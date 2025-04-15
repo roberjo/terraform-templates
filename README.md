@@ -1,8 +1,17 @@
-# AWS Solutions Architect Terraform Templates
+# AWS Solutions Architect Terraform Templates 🚀
+
+![GitHub](https://img.shields.io/github/license/yourusername/terraform-templates)
+![Terraform](https://img.shields.io/badge/terraform-%235835CC.svg?style=flat&logo=terraform&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=flat&logo=amazon-aws&logoColor=white)
+![GitHub stars](https://img.shields.io/github/stars/yourusername/terraform-templates?style=social)
 
 A comprehensive collection of production-ready Terraform templates for common AWS cloud architecture patterns. This repository serves as both a reference implementation and a starting point for your AWS infrastructure projects.
 
-## Repository Structure
+<div align="center">
+  <img src="https://d1.awsstatic.com/icons/jp/AWS-Cloud-Architecture_Icon_64_Squid.5456af62a4fa66854536641477d94674fbe86144.png" alt="AWS Cloud Architecture" width="100px">
+</div>
+
+## 📋 Repository Structure
 
 ```
 terraform-templates/
@@ -12,135 +21,269 @@ terraform-templates/
 └── docs/               # Additional documentation
 ```
 
-## Available Architecture Patterns
+## 🏗️ Available Architecture Patterns
 
-1. **API Gateway with Microservices and DynamoDB**
-   - API Gateway with custom domain
-   - Lambda-based microservices
-   - DynamoDB for data persistence
-   - Complete IAM configuration
+| Pattern | Description | Key Components |
+|---------|-------------|----------------|
+| **API Gateway with Microservices** | REST API with Lambda microservices | <ul><li>API Gateway with custom domain</li><li>Lambda-based microservices</li><li>DynamoDB for data persistence</li><li>Complete IAM configuration</li></ul> |
+| **API Gateway with Direct DynamoDB** | Direct DynamoDB integration using VTL | <ul><li>API Gateway with custom domain</li><li>Direct DynamoDB integration</li><li>Optimized filtering capabilities</li></ul> |
+| **Event-Driven Processing Pipeline** | Serverless event-driven architecture | <ul><li>API Gateway ingestion endpoint</li><li>Lambda processor</li><li>SNS topic for fanout</li><li>SQS queue for processing</li></ul> |
+| **Scheduled External Data Processing** | Scheduled data collection & processing | <ul><li>EventBridge scheduler</li><li>3rd party API integration</li><li>SNS notification system</li><li>SQS queue for processing</li></ul> |
+| **Secure Static Website Hosting** | Security-focused website hosting | <ul><li>Route53 configuration</li><li>WAF protection</li><li>CloudFront distribution</li><li>S3 with KMS encryption</li></ul> |
 
-2. **API Gateway with Direct DynamoDB Integration**
-   - API Gateway with custom domain
-   - Direct DynamoDB integration using VTL templates
-   - DynamoDB table with optimized filtering capabilities
+## 🧩 Core Modules
 
-3. **Event-Driven Processing Pipeline**
-   - API Gateway ingestion endpoint
-   - Lambda processor
-   - SNS topic for fanout
-   - SQS queue for reliable processing
-   - Lambda consumer
+<table>
+  <tr>
+    <th>Module</th>
+    <th>Description</th>
+    <th>Features</th>
+  </tr>
+  <tr>
+    <td><strong>🌐 API Gateway</strong></td>
+    <td>Create REST APIs with custom domains</td>
+    <td>Custom domains, WAF integration, logging</td>
+  </tr>
+  <tr>
+    <td><strong>⚡ Lambda</strong></td>
+    <td>Deploy serverless functions</td>
+    <td>IAM roles, logging, event source mappings</td>
+  </tr>
+  <tr>
+    <td><strong>🗄️ DynamoDB</strong></td>
+    <td>Set up NoSQL database tables</td>
+    <td>Optimized indexes, encryption, backups</td>
+  </tr>
+  <tr>
+    <td><strong>📦 S3</strong></td>
+    <td>Configure storage buckets</td>
+    <td>Access patterns, encryption, lifecycles</td>
+  </tr>
+  <tr>
+    <td><strong>🌩️ CloudFront</strong></td>
+    <td>Set up content delivery networks</td>
+    <td>Caching, security settings, origins</td>
+  </tr>
+  <tr>
+    <td><strong>🔄 Route53</strong></td>
+    <td>Configure DNS settings</td>
+    <td>Hosted zones, record sets, health checks</td>
+  </tr>
+  <tr>
+    <td><strong>🛡️ WAF</strong></td>
+    <td>Implement web application firewall</td>
+    <td>Rule sets, rate limiting, IP blocking</td>
+  </tr>
+  <tr>
+    <td><strong>📨 SNS/SQS</strong></td>
+    <td>Create messaging infrastructure</td>
+    <td>Topics, queues, subscriptions, DLQs</td>
+  </tr>
+  <tr>
+    <td><strong>⏱️ EventBridge</strong></td>
+    <td>Set up event buses and schedulers</td>
+    <td>Rules, targets, schedules, patterns</td>
+  </tr>
+</table>
 
-4. **Scheduled External Data Processing**
-   - EventBridge scheduler
-   - Lambda data processor
-   - 3rd party API integration
-   - SNS notification system
-   - SQS queue for asynchronous processing
-
-5. **Secure Static Website Hosting**
-   - Route53 hosted zone configuration
-   - AWS WAF integration
-   - CloudFront distribution
-   - S3 bucket with KMS encryption
-   - Secure content delivery
-
-## Core Modules
-
-This repository includes several reusable modules that can be combined to create custom infrastructure:
-
-- **API Gateway**: Create REST APIs with custom domains and proper configuration
-- **Lambda**: Deploy serverless functions with appropriate IAM roles and logging
-- **DynamoDB**: Set up tables with optimized indexes and encryption
-- **S3**: Configure buckets with various access patterns and encryption options
-- **CloudFront**: Set up distributions with proper cache and security settings
-- **Route53**: Configure DNS settings for your domains
-- **WAF**: Implement web application firewall protection
-- **SNS/SQS**: Create messaging infrastructure for event-driven architectures
-- **EventBridge**: Set up event buses and schedulers
-
-## Getting Started
+## 🚀 Getting Started
 
 See the [Getting Started Guide](./docs/getting-started.md) for detailed instructions on how to use these templates.
 
 ### Quick Start
 
-1. Clone this repository:
+1. **Clone this repository:**
    ```bash
    git clone https://github.com/yourusername/terraform-templates.git
    cd terraform-templates
    ```
 
-2. Choose a pattern or example to deploy:
+2. **Choose a pattern or example to deploy:**
    ```bash
    cd examples/api-gateway-microservices-dynamodb
    ```
 
-3. Initialize Terraform:
+3. **Initialize Terraform:**
    ```bash
    terraform init
    ```
 
-4. Customize the variables:
+4. **Customize the variables:**
    ```bash
+   cp terraform.tfvars.example terraform.tfvars
    # Edit terraform.tfvars with your specific values
    ```
 
-5. Deploy the infrastructure:
+5. **Deploy the infrastructure:**
    ```bash
    terraform apply
    ```
 
-## Prerequisites
+## 📋 Prerequisites
 
 - Terraform v1.0+
 - AWS CLI configured with appropriate permissions
 - Basic understanding of AWS services and Terraform
 
-## Usage Examples
+## 📚 Example Usage
 
-Each architecture pattern includes detailed documentation and examples. See the `examples/` directory for complete implementations.
+### API Gateway with Lambda and DynamoDB
 
-## Best Practices Implemented
+```hcl
+module "api_microservices" {
+  source = "../../patterns/api-gateway-microservices-dynamodb"
+
+  api_name        = "customer-api"
+  api_description = "Customer API with microservices"
+  
+  # Custom domain configuration
+  create_custom_domain = true
+  domain_name          = "api.example.com"
+  certificate_arn      = "arn:aws:acm:us-east-1:123456789012:certificate/example"
+  
+  # DynamoDB configuration
+  dynamodb_table_name = "customers"
+  dynamodb_hash_key   = "id"
+  
+  # Lambda functions
+  lambda_functions = {
+    users = {
+      name        = "users-service"
+      handler     = "index.handler"
+      runtime     = "nodejs18.x"
+      filename    = "./lambda/users.zip"
+      environment_variables = {
+        STAGE = "production"
+      }
+    }
+  }
+  
+  tags = {
+    Environment = "Production"
+    Project     = "CustomerAPI"
+  }
+}
+```
+
+### Secure Static Website Hosting
+
+```hcl
+module "static_website" {
+  source = "../../patterns/route53-waf-cloudfront-s3"
+
+  domain_name     = "example.com"
+  sub_domain      = "www"
+  
+  # S3 configuration
+  bucket_name     = "www-example-com"
+  enable_encryption = true
+  
+  # CloudFront configuration
+  enable_waf      = true
+  price_class     = "PriceClass_100"
+  
+  # Route53 configuration
+  create_route53_records = true
+  route53_zone_id        = "Z1234567890ABC"
+  
+  tags = {
+    Environment = "Production"
+    Project     = "CorporateWebsite"
+  }
+}
+```
+
+## 🌟 Best Practices Implemented
 
 These templates implement several AWS best practices:
 
-1. **Security**:
-   - Principle of least privilege for IAM roles
-   - Encryption at rest for all data stores
-   - TLS for all communications
-   - WAF protection for web-facing resources
+<table>
+  <tr>
+    <th>Category</th>
+    <th>Practices</th>
+  </tr>
+  <tr>
+    <td><strong>🔒 Security</strong></td>
+    <td>
+      <ul>
+        <li>Principle of least privilege for IAM roles</li>
+        <li>Encryption at rest for all data stores</li>
+        <li>TLS for all communications</li>
+        <li>WAF protection for web-facing resources</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <td><strong>🔄 Reliability</strong></td>
+    <td>
+      <ul>
+        <li>Automatic retries and dead-letter queues</li>
+        <li>CloudWatch alarms for monitoring</li>
+        <li>Proper error handling</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <td><strong>⚡ Performance</strong></td>
+    <td>
+      <ul>
+        <li>Appropriate caching strategies</li>
+        <li>Optimized database indexes</li>
+        <li>Auto-scaling configurations</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <td><strong>💰 Cost Optimization</strong></td>
+    <td>
+      <ul>
+        <li>Pay-per-request pricing models</li>
+        <li>Resource tagging for cost allocation</li>
+        <li>Right-sized resources</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <td><strong>🔧 Operational Excellence</strong></td>
+    <td>
+      <ul>
+        <li>Comprehensive logging</li>
+        <li>Infrastructure as Code</li>
+        <li>Consistent tagging strategy</li>
+      </ul>
+    </td>
+  </tr>
+</table>
 
-2. **Reliability**:
-   - Automatic retries and dead-letter queues
-   - CloudWatch alarms for monitoring
-   - Proper error handling
+## ✅ AWS Well-Architected Framework Alignment
 
-3. **Performance Efficiency**:
-   - Appropriate caching strategies
-   - Optimized database indexes
-   - Auto-scaling configurations
+Our templates are designed with the [AWS Well-Architected Framework](https://aws.amazon.com/architecture/well-architected/) in mind:
 
-4. **Cost Optimization**:
-   - Pay-per-request pricing models where appropriate
-   - Resource tagging for cost allocation
-   - Right-sized resources
+| Pillar | Implementation |
+|--------|----------------|
+| **Operational Excellence** | Infrastructure as Code, consistent tagging, thorough documentation |
+| **Security** | Least-privilege IAM, encrypted data, WAF protection, TLS enforcement |
+| **Reliability** | Multi-AZ deployments, automatic retries, DLQs, monitoring & alarming |
+| **Performance Efficiency** | Auto-scaling, caching strategies, optimized data access patterns |
+| **Cost Optimization** | Serverless architectures, pay-per-request models, right-sized resources |
+| **Sustainability** | Efficient resource utilization, serverless to minimize idle resources |
 
-5. **Operational Excellence**:
-   - Comprehensive logging
-   - Infrastructure as Code
-   - Consistent tagging strategy
-
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Please see [CONTRIBUTING.md](./docs/CONTRIBUTING.md) for details.
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
+## 🙏 Acknowledgments
 
-These templates are inspired by AWS Well-Architected Framework and real-world AWS Solutions Architecture patterns. 
+These templates are inspired by AWS Well-Architected Framework and real-world AWS Solutions Architecture patterns.
+
+---
+
+<div align="center">
+  <img src="https://d0.awsstatic.com/logos/powered-by-aws.png" alt="Powered by AWS Cloud Computing" width="150px">
+  <p>Built with ❤️ by AWS Solutions Architects</p>
+</div>
 
