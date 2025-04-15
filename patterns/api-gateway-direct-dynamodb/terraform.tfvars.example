@@ -1,0 +1,111 @@
+/**
+ * # API Gateway with Direct DynamoDB Integration Pattern - Example Configuration
+ *
+ * This is an example configuration for the API Gateway with Direct DynamoDB Integration pattern.
+ * Copy this file to terraform.tfvars and modify the values as needed.
+ */
+
+aws_region = "us-east-1"
+
+default_tags = {
+  Environment = "dev"
+  Project     = "API-DynamoDB-Direct"
+  Terraform   = "true"
+}
+
+# API Gateway Configuration
+api_name        = "items-api"
+api_description = "Items API with direct DynamoDB integration"
+endpoint_types  = ["REGIONAL"]
+stage_name      = "dev"
+
+# Custom Domain Configuration (optional)
+create_custom_domain = false
+# domain_name         = "api.example.com"
+# certificate_arn     = "arn:aws:acm:us-east-1:123456789012:certificate/abcd1234-abcd-1234-abcd-1234abcd5678"
+# base_path           = "items"
+
+# API Gateway Authorization
+api_authorization_type = "NONE"
+require_api_key        = false
+
+# CORS Configuration
+enable_cors      = true
+cors_allow_origin = "*"
+
+# DynamoDB Table Configuration
+dynamodb_table_name                 = "items"
+dynamodb_billing_mode               = "PAY_PER_REQUEST"
+dynamodb_hash_key                   = "id"
+dynamodb_hash_key_type              = "S"
+dynamodb_range_key                  = "sort"
+dynamodb_range_key_type             = "S"
+dynamodb_enable_encryption          = true
+dynamodb_enable_point_in_time_recovery = false
+dynamodb_ttl_attribute_name         = "ttl"
+
+# Additional DynamoDB Attributes
+dynamodb_attributes = [
+  {
+    name = "status"
+    type = "S"
+  },
+  {
+    name = "createdAt"
+    type = "N"
+  }
+]
+
+# Global Secondary Indexes
+dynamodb_global_secondary_indexes = [
+  {
+    name            = "StatusIndex"
+    hash_key        = "status"
+    range_key       = "createdAt"
+    projection_type = "ALL"
+  }
+]
+
+# Local Secondary Indexes
+dynamodb_local_secondary_indexes = [
+  {
+    name            = "CreatedAtIndex"
+    range_key       = "createdAt"
+    projection_type = "ALL"
+  }
+]
+
+# API Endpoints Configuration
+api_endpoints = {
+  "items" = {
+    collection_operation = "GET"
+    query_type           = "Scan"
+    limit                = 100
+  },
+  "items-by-status" = {
+    collection_operation = "GET"
+    query_type           = "Query"
+    index_name           = "StatusIndex"
+    key_condition        = "status = :status"
+    expression_names     = {}
+    expression_values    = { ":status" = "active" }
+    limit                = 50
+  },
+  "item" = {
+    item_operation = "GET"
+  },
+  "create-item" = {
+    collection_operation = "POST"
+    auto_generate_id     = true
+  },
+  "update-item" = {
+    item_operation       = "PUT"
+    update_expression    = "SET #status = :status, updatedAt = :updatedAt"
+    expression_names     = { "#status" = "status" }
+    expression_values    = { ":status" = "updated", ":updatedAt" = "timestamp_value" }
+    condition_expression = "attribute_exists(id)"
+  },
+  "delete-item" = {
+    item_operation = "DELETE"
+  }
+} 
