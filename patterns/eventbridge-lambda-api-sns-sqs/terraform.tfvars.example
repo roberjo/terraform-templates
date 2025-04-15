@@ -1,0 +1,82 @@
+/**
+ * # EventBridge with Lambda, SNS, and SQS Pattern - Example Configuration
+ *
+ * This is an example configuration for the EventBridge with Lambda, SNS, and SQS pattern.
+ * Copy this file to terraform.tfvars and modify the values as needed.
+ */
+
+aws_region = "us-east-1"
+
+name_prefix = "eb-lambda-sns-sqs"
+
+default_tags = {
+  Environment = "dev"
+  Project     = "EventBridge-Lambda-SNS-SQS"
+  Terraform   = "true"
+}
+
+# EventBridge Scheduler Configuration
+scheduler_name        = "api-data-processor-scheduler"
+scheduler_description = "Scheduler that triggers Lambda to retrieve data from API"
+schedule_expression   = "cron(0 12 * * ? *)"  # Run daily at noon UTC
+scheduler_state       = "ENABLED"
+
+# API Configuration
+api_endpoint = "https://api.example.com/data"
+api_key      = "your-api-key"  # Consider using AWS Secrets Manager for production
+batch_size   = 100  # Process data in batches of 100
+
+# Lambda Function Configuration
+lambda_function_name   = "api-processor"
+lambda_description     = "Retrieves data from API and publishes to SNS"
+lambda_handler         = "api-processor.handler"
+lambda_runtime         = "nodejs18.x"
+lambda_timeout         = 30
+lambda_memory_size     = 256
+lambda_publish_version = true
+
+# Path to Lambda deployment package - update with your actual path
+# lambda_source_path = "./src/api-processor.zip"
+
+# Lambda Environment Variables
+lambda_environment_variables = {
+  LOG_LEVEL = "INFO"
+}
+
+# SNS Topic Configuration
+sns_topic_name = "api-data-topic"
+sns_fifo_topic = false
+create_sns_dlq = true
+
+# SQS Queue Configuration
+sqs_queue_name                = "api-data-queue"
+sqs_visibility_timeout        = 60
+sqs_message_retention_seconds = 86400  # 1 day
+sqs_max_message_size          = 262144 # 256 KB
+sqs_delay_seconds             = 0
+sqs_receive_wait_time_seconds = 20
+create_sqs_dlq                = true
+sqs_max_receive_count         = 5
+
+# SQS Processor Lambda Configuration
+create_sqs_processor_lambda   = true
+sqs_processor_function_name   = "sqs-data-processor"
+sqs_processor_description     = "Processes messages from SQS queue"
+sqs_processor_handler         = "sqs-processor.handler"
+sqs_processor_runtime         = "nodejs18.x"
+sqs_processor_timeout         = 30
+sqs_processor_memory_size     = 256
+sqs_processor_batch_size      = 10
+sqs_processor_batch_window    = 60
+
+# Path to SQS processor Lambda deployment package - update with your actual path
+# sqs_processor_source_path = "./src/sqs-processor.zip"
+
+# Optional CloudWatch Alarms
+create_cloudwatch_alarms         = true
+lambda_errors_alarm_threshold    = 5
+sqs_errors_alarm_threshold       = 5
+sns_failed_publish_threshold     = 5
+alarm_evaluation_periods         = 1
+alarm_period                     = 300
+alarm_actions                    = []  # Add SNS topic ARN for notifications 
