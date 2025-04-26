@@ -1,131 +1,66 @@
-# API Gateway with Microservices and DynamoDB Example
+# Example: API Gateway with Microservices and DynamoDB
 
-This example demonstrates how to use the API Gateway with Microservices and DynamoDB pattern to create a complete serverless architecture. It includes API Gateway with custom domain, Lambda microservices, DynamoDB for data persistence, WAF protection, and KMS encryption.
+This directory contains an example Terraform configuration that deploys the API Gateway-Microservices-DynamoDB pattern.
 
-## Architecture Overview
-
-This example creates:
-
-- API Gateway with custom domain support
-- Multiple Lambda microservices
-- DynamoDB table with GSIs
-- AWS WAF Web ACL (optional)
-- KMS key for encryption (optional)
-- CloudWatch logging
-- IAM roles with appropriate permissions
+This pattern creates a REST API using API Gateway where different paths are routed to different Lambda functions (microservices). These microservices typically interact with a shared DynamoDB table for data persistence.
 
 ## Prerequisites
 
-1. AWS CLI configured with appropriate permissions
-2. Terraform v1.0 or later
-3. If using custom domain, a domain registered in Route 53 or managed elsewhere
-4. Lambda function code zip files (provided in this example)
+1.  **Lambda Code:** You need to provide the deployment packages (.zip files) for each microservice defined in the `lambda_functions` variable in `terraform.tfvars`. Ensure the paths specified in the `filename` attribute for each function are correct relative to this example directory.
+2.  **Custom Domain (Optional):** If using a custom domain (`create_custom_domain = true`), you need:
+    *   A registered domain name.
+    *   An ACM certificate in the **same region** as your API Gateway deployment that validates the `domain_name`.
 
 ## Usage
 
-1. **Initialize Terraform**:
-   ```bash
-   terraform init
-   ```
+1.  **Customize Variables:**
+    *   Copy the `terraform.tfvars` file provided in this directory.
+    *   Update the variables with your specific values, especially:
+        *   `api_name`: A name for your API Gateway.
+        *   `dynamodb_table_name`: A name for your DynamoDB table.
+        *   `dynamodb_hash_key`, `dynamodb_range_key` (if used), and `dynamodb_attributes`: Define your table's primary key structure and any attributes needed for secondary indexes.
+        *   `lambda_functions`: This is the core configuration. For each microservice (e.g., "users", "orders"):
+            *   Define a unique `name` for the Lambda function.
+            *   Specify the correct `handler` and `runtime` for your code.
+            *   **Crucially, update `filename` to point to the actual path of your Lambda deployment package (.zip file) for that microservice.**
+            *   Optionally set `source_code_hash = filebase64sha256("path/to/your/lambda.zip")` to trigger updates when the code changes.
+            *   Configure `memory_size`, `timeout`, `environment_variables`, `layers`, etc., as needed for each function.
+        *   If `create_custom_domain = true`, set `domain_name` and `certificate_arn`.
+        *   Review other configurations like CORS, DynamoDB indexes, API authorization, etc.
 
-2. **Review and customize variables**:
-   - Edit `terraform.tfvars` as needed
-   - By default, custom domain and WAF are disabled to simplify the setup
+2.  **Prepare Lambda Packages:**
+    *   Ensure your Lambda deployment packages (.zip files) exist at the locations specified in the `filename` attributes within the `lambda_functions` map in your `terraform.tfvars` file.
 
-3. **Plan the deployment**:
-   ```bash
-   terraform plan -out=tfplan
-   ```
+3.  **Deploy the Stack:**
+    *   Navigate to this directory (`examples/api-gateway-microservices-dynamodb`) in your terminal.
+    *   Initialize Terraform:
+        ```bash
+        terraform init
+        ```
+    *   Plan the deployment:
+        ```bash
+        terraform plan -var-file=terraform.tfvars
+        ```
+    *   Apply the configuration:
+        ```bash
+        terraform apply -var-file=terraform.tfvars
+        ```
 
-4. **Apply the plan**:
-   ```bash
-   terraform apply tfplan
-   ```
-
-## Customization Options
-
-### Enabling Custom Domain
-
-To enable a custom domain for your API:
-
-1. Set `create_custom_domain = true` in terraform.tfvars
-2. Specify your domain name: `domain_name = "api.yourdomain.com"`
-3. After deployment, validate the ACM certificate:
-   - Add the validation CNAME records to your DNS
-   - Create an A record pointing to the API Gateway domain name (output by Terraform)
-
-### Enabling WAF Protection
-
-To enable WAF protection:
-
-1. Set `create_waf_acl = true` in terraform.tfvars
-2. Modify the WAF rules in `main.tf` as needed
-
-### Using Customer Managed KMS Keys
-
-For additional security with your own KMS keys:
-
-1. Set `use_customer_managed_key = true` in terraform.tfvars
-
-## Lambda Function Code
-
-This example includes a simple Lambda function for demonstration purposes:
-
-```javascript
-// Example Lambda handler in lambda/example-function.zip
-exports.handler = async (event) => {
-  console.log('Received event:', JSON.stringify(event, null, 2));
-  
-  const httpMethod = event.httpMethod;
-  const path = event.path;
-  const resource = event.resource;
-  
-  // Determine the service from the path
-  const serviceName = path.split('/')[1];
-  
-  // Simulate database interaction
-  const response = {
-    service: serviceName,
-    method: httpMethod,
-    message: `This is the ${serviceName} microservice responding to a ${httpMethod} request`,
-    timestamp: new Date().toISOString()
-  };
-  
-  // Return response
-  return {
-    statusCode: 200,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*'
-    },
-    body: JSON.stringify(response)
-  };
-};
-```
-
-## Testing the API
-
-After deployment, you can test the API using curl or a tool like Postman:
-
-```bash
-# Get all users
-curl -X GET https://api.example.com/v1/users
-
-# Get a specific item
-curl -X GET https://api.example.com/v1/items/123
-
-# Create a new user
-curl -X POST https://api.example.com/v1/users \
-  -H "Content-Type: application/json" \
-  -d '{"name": "John Doe", "email": "john@example.com"}'
-```
+4.  **Test the API:**
+    *   Terraform will output the `api_gateway_invoke_url` (or `api_gateway_custom_domain_url` if configured) and a map of `microservice_urls`.
+    *   Use a tool like `curl` or Postman to send requests to the specific microservice endpoints:
+        *   **Example (Users Service):** `curl {invoke_url}/{stage_name}/users` (assuming "users" is a key in `lambda_functions`)
+        *   **Example (Orders Service with ID):** `curl {invoke_url}/{stage_name}/orders/123`
+        *   **Example POST:** `curl -X POST -d '{...}' {invoke_url}/{stage_name}/users`
+    *   Check CloudWatch Logs for each Lambda function to verify execution and troubleshoot issues.
+    *   Check the DynamoDB table to verify data persistence.
 
 ## Cleanup
 
-To remove all resources created by this example:
+To remove the resources created by this example, run:
 
 ```bash
-terraform destroy
+terraform destroy -var-file=terraform.tfvars
 ```
 
 ## Variables

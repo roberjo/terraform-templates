@@ -9,12 +9,11 @@ provider "aws" {
   }
 }
 
-# Instantiate the API Gateway Microservices to DynamoDB Pattern Module
-# This module encapsulates the creation of API Gateway, multiple Lambda functions (microservices),
-# a DynamoDB table, and associated IAM roles.
-module "api_microservices" {
+# Instantiate the API Gateway to DynamoDB Pattern Module
+# This module encapsulates the creation of API Gateway, DynamoDB table, and IAM roles.
+module "api_dynamodb" {
   # Source points to the pattern directory relative to this example.
-  source = "../../patterns/api-gateway-microservices-dynamodb"
+  source = "../../patterns/api-gateway-direct-dynamodb"
 
   # --- Pass variables defined in terraform.tfvars to the module --- #
 
@@ -34,9 +33,9 @@ module "api_microservices" {
   base_path                           = var.base_path
   cloudwatch_role_arn                 = var.cloudwatch_role_arn
   waf_acl_arn                         = var.waf_acl_arn
-  api_authorization_type              = var.api_authorization_type
-  api_authorizer_id                   = var.api_authorizer_id
-  request_parameters                  = var.request_parameters
+  api_authorization                   = var.api_authorization
+  require_api_key                     = var.require_api_key
+  collection_name                     = var.collection_name # e.g., "items", "users"
   enable_cors                         = var.enable_cors
   cors_allow_origin                   = var.cors_allow_origin
 
@@ -46,9 +45,7 @@ module "api_microservices" {
   dynamodb_read_capacity              = var.dynamodb_read_capacity
   dynamodb_write_capacity             = var.dynamodb_write_capacity
   dynamodb_hash_key                   = var.dynamodb_hash_key
-  dynamodb_hash_key_type              = var.dynamodb_hash_key_type
   dynamodb_range_key                  = var.dynamodb_range_key
-  dynamodb_range_key_type             = var.dynamodb_range_key_type
   dynamodb_attributes                 = var.dynamodb_attributes
   dynamodb_global_secondary_indexes   = var.dynamodb_global_secondary_indexes
   dynamodb_local_secondary_indexes    = var.dynamodb_local_secondary_indexes
@@ -56,11 +53,15 @@ module "api_microservices" {
   dynamodb_kms_key_arn                = var.dynamodb_kms_key_arn
   dynamodb_enable_point_in_time_recovery = var.dynamodb_enable_point_in_time_recovery
   dynamodb_ttl_attribute_name         = var.dynamodb_ttl_attribute_name
-  dynamodb_stream_enabled             = var.dynamodb_stream_enabled
-  dynamodb_stream_view_type           = var.dynamodb_stream_view_type
 
-  # Lambda Functions Configuration (Map defining each microservice)
-  lambda_functions                    = var.lambda_functions
+  # API Endpoint Integrations (Defining CRUD operations)
+  api_endpoints                       = var.api_endpoints
+
+  # Usage Plan Configuration
+  usage_plan_quota_limit              = var.usage_plan_quota_limit
+  usage_plan_quota_period             = var.usage_plan_quota_period
+  usage_plan_throttle_rate            = var.usage_plan_throttle_rate
+  usage_plan_throttle_burst           = var.usage_plan_throttle_burst
 }
 
 # --- Variable Definitions for the Example --- #
@@ -118,7 +119,7 @@ variable "stage_name" {
 variable "create_custom_domain" {
   description = "Whether to create a custom domain for API Gateway."
   type        = bool
-  default     = false
+  default     = null
 }
 
 # The custom domain name (e.g., "api.example.com"). Required if create_custom_domain is true.
@@ -135,9 +136,9 @@ variable "certificate_arn" {
   default     = null
 }
 
-# Base path mapping for the custom domain (e.g., "users", "items").
+# Base path mapping for the custom domain (e.g., "items").
 variable "base_path" {
-  description = "Base path mapping for the custom domain."
+  description = "Base path for the custom domain mapping."
   type        = string
   default     = null
 }
@@ -156,39 +157,34 @@ variable "waf_acl_arn" {
   default     = null
 }
 
-# Authorization type for API methods (e.g., "NONE", "AWS_IAM", "COGNITO_USER_POOLS").
-variable "api_authorization_type" {
-  description = "Default authorization type for API Gateway methods."
+# Authorization type for API methods (e.g., "NONE", "AWS_IAM").
+variable "api_authorization" {
+  description = "Authorization type for API Gateway methods."
   type        = string
-  default     = "NONE"
 }
 
-# Optional Authorizer ID if using CUSTOM or COGNITO_USER_POOLS authorization.
-variable "api_authorizer_id" {
-  description = "Authorizer ID for API Gateway methods."
-  type        = string
-  default     = null
+# Set to true to require an API key for accessing the methods.
+variable "require_api_key" {
+  description = "Whether to require an API key."
+  type        = bool
 }
 
-# Optional configuration for request parameters.
-variable "request_parameters" {
-  description = "Request parameters configuration for API Gateway methods."
-  type        = map(bool)
-  default     = {}
+# The base path for the collection resource (e.g., "/items", "/users").
+variable "collection_name" {
+  description = "Name of the collection resource in API Gateway (e.g., 'items')."
+  type        = string
 }
 
 # Enable Cross-Origin Resource Sharing (CORS) preflight OPTIONS method.
 variable "enable_cors" {
   description = "Enable CORS for API Gateway."
   type        = bool
-  default     = true
 }
 
 # The Access-Control-Allow-Origin header value for CORS.
 variable "cors_allow_origin" {
   description = "CORS allowed origin (e.g., '*' or 'https://example.com')."
   type        = string
-  default     = "*"
 }
 
 # --- DynamoDB Variables --- #
@@ -201,36 +197,28 @@ variable "dynamodb_table_name" {
 
 # Billing mode for the DynamoDB table (PAY_PER_REQUEST or PROVISIONED).
 variable "dynamodb_billing_mode" {
-  description = "DynamoDB billing mode."
+  description = "DynamoDB billing mode (PAY_PER_REQUEST or PROVISIONED)."
   type        = string
-  default     = "PAY_PER_REQUEST"
 }
 
 # Read capacity units (RCU) if billing mode is PROVISIONED.
 variable "dynamodb_read_capacity" {
   description = "DynamoDB read capacity (only if billing_mode is PROVISIONED)."
   type        = number
-  default     = 5
+  default     = null
 }
 
 # Write capacity units (WCU) if billing mode is PROVISIONED.
 variable "dynamodb_write_capacity" {
   description = "DynamoDB write capacity (only if billing_mode is PROVISIONED)."
   type        = number
-  default     = 5
+  default     = null
 }
 
 # Name of the primary hash key (partition key) attribute.
 variable "dynamodb_hash_key" {
   description = "DynamoDB hash key attribute name."
   type        = string
-}
-
-# Type of the primary hash key attribute (S, N, or B).
-variable "dynamodb_hash_key_type" {
-  description = "DynamoDB hash key attribute type."
-  type        = string
-  default     = "S"
 }
 
 # Optional name of the primary range key (sort key) attribute.
@@ -240,42 +228,34 @@ variable "dynamodb_range_key" {
   default     = null
 }
 
-# Optional type of the primary range key attribute (S, N, or B).
-variable "dynamodb_range_key_type" {
-  description = "DynamoDB range key attribute type."
-  type        = string
-  default     = "S"
-}
-
-# List of attribute definitions for the table (must include all key attributes).
+# List of attribute definitions for the table.
 variable "dynamodb_attributes" {
   description = "DynamoDB attribute definitions."
   type = list(object({
     name = string
     type = string # S, N, or B
   }))
-  default = []
 }
 
 # Configuration for Global Secondary Indexes (GSIs).
 variable "dynamodb_global_secondary_indexes" {
   description = "DynamoDB Global Secondary Index configurations."
-  type        = any # More specific type defined in module
+  type        = any # More specific type in the module
   default     = []
 }
 
 # Configuration for Local Secondary Indexes (LSIs).
 variable "dynamodb_local_secondary_indexes" {
   description = "DynamoDB Local Secondary Index configurations."
-  type        = any # More specific type defined in module
+  type        = any # More specific type in the module
   default     = []
 }
 
-# Enable server-side encryption (recommended).
+# Enable server-side encryption.
 variable "dynamodb_enable_encryption" {
   description = "Enable DynamoDB server-side encryption."
   type        = bool
-  default     = true
+  default     = null
 }
 
 # Optional KMS key ARN for encryption (uses AWS-managed key if null).
@@ -289,7 +269,7 @@ variable "dynamodb_kms_key_arn" {
 variable "dynamodb_enable_point_in_time_recovery" {
   description = "Enable DynamoDB Point-in-Time Recovery."
   type        = bool
-  default     = true
+  default     = null
 }
 
 # Optional attribute name to enable Time To Live (TTL) feature.
@@ -299,29 +279,42 @@ variable "dynamodb_ttl_attribute_name" {
   default     = null
 }
 
-# Enable DynamoDB Streams.
-variable "dynamodb_stream_enabled" {
-  description = "Enable DynamoDB Streams."
-  type        = bool
-  default     = false
+# --- API Endpoint Integration Variables --- #
+
+# Map defining the API endpoints and their corresponding DynamoDB actions.
+variable "api_endpoints" {
+  description = "Map of API endpoints to configure with DynamoDB integrations."
+  type        = any # More specific type in the module
 }
 
-# View type for DynamoDB Streams if enabled.
-variable "dynamodb_stream_view_type" {
-  description = "DynamoDB Stream view type."
+# --- Usage Plan Variables --- #
+
+# Quota limit for the API usage plan.
+variable "usage_plan_quota_limit" {
+  description = "Usage plan quota limit."
+  type        = number
+  default     = null
+}
+
+# Quota period for the API usage plan (DAY, WEEK, MONTH).
+variable "usage_plan_quota_period" {
+  description = "Usage plan quota period."
   type        = string
-  default     = "NEW_AND_OLD_IMAGES"
+  default     = null
 }
 
-# --- Lambda Functions Variable --- #
+# Throttling rate limit for the API usage plan.
+variable "usage_plan_throttle_rate" {
+  description = "Usage plan throttle rate limit."
+  type        = number
+  default     = null
+}
 
-# A map defining the configuration for each Lambda microservice.
-# The key of the map typically represents the microservice name (e.g., "users", "orders").
-variable "lambda_functions" {
-  description = "Map defining Lambda functions for microservices."
-  # Type is 'any' here as the exact structure is complex and validated within the module.
-  # See the pattern's variables.tf and the example terraform.tfvars for the expected structure.
-  type = any
+# Throttling burst limit for the API usage plan.
+variable "usage_plan_throttle_burst" {
+  description = "Usage plan throttle burst limit."
+  type        = number
+  default     = null
 }
 
 # --- Example Outputs --- #
@@ -329,35 +322,23 @@ variable "lambda_functions" {
 # The base URL to invoke the deployed API stage.
 output "api_gateway_invoke_url" {
   description = "Invoke URL for the API Gateway stage"
-  value       = module.api_microservices.api_gateway_invoke_url
+  value       = module.api_dynamodb.api_gateway_invoke_url
 }
 
 # The URL for the custom domain, if configured.
 output "api_gateway_custom_domain_url" {
   description = "URL for the custom domain if configured"
-  value       = module.api_microservices.api_gateway_custom_domain_url
+  value       = module.api_dynamodb.api_gateway_custom_domain_url
 }
 
 # The name of the created DynamoDB table.
 output "dynamodb_table_name" {
   description = "Name of the DynamoDB table created"
-  value       = module.api_microservices.dynamodb_table_id # Corrected from original example output
+  value       = module.api_dynamodb.dynamodb_table_name
 }
 
 # The ARN of the created DynamoDB table.
 output "dynamodb_table_arn" {
   description = "ARN of the DynamoDB table created"
-  value       = module.api_microservices.dynamodb_table_arn
-}
-
-# Map of microservice names to their Lambda function ARNs.
-output "lambda_function_arns" {
-  description = "ARNs of the Lambda functions created for microservices"
-  value       = module.api_microservices.lambda_function_arns
-}
-
-# Map of microservice names to their base URLs.
-output "microservice_urls" {
-  description = "Invoke URLs for each microservice endpoint"
-  value       = module.api_microservices.microservice_urls
+  value       = module.api_dynamodb.dynamodb_table_arn
 } 
