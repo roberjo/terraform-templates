@@ -7,6 +7,7 @@ This directory contains comprehensive documentation for the AWS Terraform Templa
 ### Architecture Documentation
 
 - **[Project Architecture Diagrams](./project-architecture-diagrams.md)** - Comprehensive Mermaid diagrams showcasing all architecture patterns and capabilities
+- **[Additional Architecture Diagrams](./missing-architecture-diagrams.md)** - Pattern comparison, data flows, implementation roadmap, and operational diagrams
 - **[Architecture Showcase Summary](./architecture-showcase-summary.md)** - Overview of solution architecture capabilities demonstrated by this project
 
 ### Getting Started
@@ -41,6 +42,7 @@ The project includes the following production-ready architecture patterns:
 
 The project includes comprehensive Mermaid diagrams that showcase:
 
+### Core Architecture Diagrams
 1. **Overall Project Architecture** - High-level view of the entire project structure
 2. **Pattern-Based Architecture Overview** - How different patterns relate to use cases
 3. **Individual Pattern Diagrams** - Detailed architecture for each pattern
@@ -50,6 +52,17 @@ The project includes comprehensive Mermaid diagrams that showcase:
 7. **AWS Well-Architected Framework Alignment** - How patterns align with AWS best practices
 8. **Deployment Flow Architecture** - Development and deployment workflows
 9. **Technology Stack Overview** - Complete technology stack visualization
+
+### Additional Operational Diagrams
+10. **Pattern Comparison Matrix** - Visual comparison of patterns by complexity, cost, and features
+11. **Data Flow Diagrams** - Sequence diagrams showing how data moves through each pattern
+12. **Implementation Roadmap** - Phased implementation approach and migration paths
+13. **VPC Architecture** - Network layout and security group configurations
+14. **IAM Permission Diagrams** - Role and policy relationships
+15. **Monitoring and Alerting** - Comprehensive observability setup
+16. **CI/CD Pipeline** - Automated deployment workflows
+17. **Testing Strategy** - Testing pyramid and tools
+18. **Troubleshooting Flowcharts** - Common issues and resolution paths
 
 ## 🎯 Key Capabilities Demonstrated
 
